@@ -27,12 +27,16 @@ bot.on(message('text'), async (ctx) => {
   const chatHistory = history.get(chatId)
   const { text, filePath } = await gpt.generate(chatHistory)
 
-  history.addMessage(chatId, 'assistant', text)
-
   if (filePath) {
+    // Добавляем основной ответ помощника
+    history.addMessage(chatId, 'assistant', text)
+    // Добавляем информацию о генерации документа
+    history.addDocumentGeneration(chatId, filePath)
+
     await ctx.reply(text, { parse_mode: 'Markdown' })
     await ctx.replyWithDocument({ source: filePath })
   } else {
+    history.addMessage(chatId, 'assistant', text)
     await ctx.reply(text, { parse_mode: 'Markdown' })
   }
 })
