@@ -13,6 +13,8 @@ bot.start(async (ctx) => {
     'Пользователь запустил бота. Сгенерируй короткое приветственное сообщение'
   )
 
+  history.clear(ctx.chat.id)
+
   await ctx.reply(response.text, {
     parse_mode: 'Markdown',
   })

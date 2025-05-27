@@ -8,7 +8,6 @@ const history = {
     if (!chatHistory.has(chatId)) chatHistory.set(chatId, [])
     const history = chatHistory.get(chatId)
     history.push({ role, content })
-    if (history.length > 10) history.shift()
     chatHistory.set(chatId, history)
   },
   addDocumentGeneration(chatId, documentPath) {
@@ -24,6 +23,10 @@ const history = {
     }
 
     chatHistory.set(chatId, history)
+  },
+
+  clear(chatId) {
+    chatHistory.delete(chatId)
   },
 }
 
