@@ -8,7 +8,7 @@ const document = {
    * @param {string|string[]} header - Титульная часть (строка или массив строк)
    * @param {string|string[]} title - Заголовок (строка или массив строк)
    * @param {string|string[]} content - Основная часть документа (строка или массив строк)
-   * @param {string|string[]} signatory - Подпись (строка или массив строк)
+   * @param {string|string[]} signatory - Подпцись (строка или массив строк)
    * @returns {Promise<string>} - Путь к файлу
    */
   async generate(header, title, content, signatory) {
