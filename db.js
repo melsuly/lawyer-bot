@@ -34,13 +34,13 @@ export async function generateKey(days) {
   const db = loadDB();
   const key = generateRandomKey(10);
   const now = Date.now();
-  
+
   db.activation_keys[key] = {
     days,
     created_at: now,
     used: false
   };
-  
+
   saveDB(db);
   return key;
 }
@@ -48,25 +48,25 @@ export async function generateKey(days) {
 export async function activateUser(chatId, key) {
   const db = loadDB();
   const keyData = db.activation_keys[key];
-  
+
   if (!keyData) {
     throw new Error('invalid_key');
   }
   if (keyData.used) {
     throw new Error('key_used');
   }
-  
+
   const now = Date.now();
   const expiration = now + keyData.days * 24 * 60 * 60 * 1000;
-  
+
   // Mark key as used
   db.activation_keys[key].used = true;
-  
+
   // Set user activation
   db.users[chatId] = {
     activated_until: expiration
   };
-  
+
   saveDB(db);
   return expiration;
 }
@@ -74,7 +74,7 @@ export async function activateUser(chatId, key) {
 export async function isActivated(chatId) {
   const db = loadDB();
   const userData = db.users[chatId];
-  
+
   if (!userData) return false;
   return userData.activated_until > Date.now();
 }

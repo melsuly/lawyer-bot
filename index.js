@@ -18,11 +18,11 @@ bot.start(async (ctx) => {
   const user = ctx.from.username
   const isAdmin = adminUsernames.includes(user)
   const activated = await isActivated(chatId)
-  
+
   if (!activated && !isAdmin) {
-    return ctx.reply('Привет! Этот бот доступен только после активации. Используй команду /activate <ключ>.')
+    return ctx.reply('Привет! Этот бот доступен только после активации.\nОтправьте ключ активации или используйте /activate <ключ>.')
   }
-  
+
   const response = await gpt.generate(
     'Пользователь запустил бота. Сгенерируй короткое приветственное сообщение'
   )
@@ -63,30 +63,49 @@ bot.command('genkey', async (ctx) => {
   if (!adminUsernames.includes(user)) {
     return ctx.reply('Только администраторы могут использовать эту команду.')
   }
-  const parts = ctx.message.text.split(' ')
-  if (parts.length < 2) {
-    return ctx.reply('Использование: /genkey <количество_дней>')
-  }
-  const days = parseInt(parts[1], 10)
-  if (isNaN(days) || days <= 0) {
-    return ctx.reply('Неверное количество дней.')
-  }
-  const key = await generateKey(days)
-  await ctx.reply(`Новый ключ: ${key}\nДействует ${days} дней.`)
+  await ctx.reply('Введите количество дней для ключа:')
 })
 
+// Handle days input for genkey and activation keys
 bot.on(message('text'), async (ctx) => {
   const chatId = ctx.chat.id
   const user = ctx.from.username
   const isAdmin = adminUsernames.includes(user)
-  
+  const userMessage = ctx.message.text
+
+  // Check if this is a response to genkey command for admin
+  if (isAdmin && /^\d+$/.test(userMessage.trim())) {
+    const days = parseInt(userMessage.trim(), 10)
+    if (days > 0) {
+      try {
+        const key = await generateKey(days)
+        return ctx.reply(`Новый ключ: \`${key}\`\nДействует ${days} дней.`, { parse_mode: 'Markdown' })
+      } catch (err) {
+        // If it fails, continue to normal message processing
+      }
+    }
+  }
+
   // Check activation for regular messages (skip for admins)
   const activated = await isActivated(chatId)
   if (!activated && !isAdmin) {
-    return ctx.reply('Бот доступен только после активации. Используй /activate <ключ>.')
+    // Try to activate with the message as key (if it looks like an activation key)
+    if (/^[A-Za-z0-9]{10}$/.test(userMessage.trim())) {
+      try {
+        const expiration = await activateUser(chatId, userMessage.trim())
+        const date = new Date(expiration).toLocaleString('ru-RU')
+        return ctx.reply(`✅ Активировано до ${date}`)
+      } catch (err) {
+        if (err.message === 'invalid_key') {
+          return ctx.reply('❌ Неверный ключ активации.\nОтправьте корректный ключ активации или используйте /activate <ключ>.')
+        }
+        if (err.message === 'key_used') {
+          return ctx.reply('❌ Этот ключ уже использован.\nОтправьте новый ключ активации.')
+        }
+      }
+    }
+    return ctx.reply('Бот доступен только после активации.\nОтправьте ключ активации или используйте /activate <ключ>.')
   }
-  
-  const userMessage = ctx.message.text
 
   history.addMessage(chatId, 'user', userMessage)
 

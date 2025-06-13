@@ -1,0 +1,12 @@
+{
+  "watch": [
+    "*.js",
+    "*.json"
+  ],
+  "ignore": [
+    "node_modules",
+    "generated",
+    "database.json"
+  ],
+  "ext": "js,json"
+}
